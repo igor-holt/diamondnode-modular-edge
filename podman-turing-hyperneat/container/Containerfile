@@ -1,0 +1,37 @@
+# Podman Containerfile — Turing (GTX 1650 SM 7.5) HyperNEAT-LEO worker
+# Rootless-friendly. Build and run with Podman + NVIDIA Container Toolkit.
+#
+#   podman build -t diamondnode-turing-hyperneat -f Containerfile .
+#   podman run --device nvidia.com/gpu=all -v /data/diamondnode-dual:/data:Z \
+#       diamondnode-turing-hyperneat
+#
+# JAX CUDA wheels selected for broad Turing compatibility.
+# Equinox + modular HyperNEAT-LEO evolution produces modular substrates
+# that feed the dual-1650 EnergyLandscape / OpenClaw geometric routing.
+
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV XLA_PYTHON_CLIENT_PREALLOCATE=false
+ENV JAX_PLATFORMS=cuda
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/hyperneat
+
+RUN pip3 install --no-cache-dir \
+    "jax[cuda12]" \
+    equinox \
+    numpy
+
+COPY shared/ /opt/hyperneat/shared/
+COPY scripts/run_modular_evolution.py /opt/hyperneat/run_modular_evolution.py
+
+ENV PYTHONPATH=/opt/hyperneat/shared
+ENV WORK_DIR=/data
+
+ENTRYPOINT ["python3", "/opt/hyperneat/run_modular_evolution.py"]
+CMD ["--n-nodes", "16", "--pop", "16", "--gens", "20", "--out", "/data/modular_result.json"]
