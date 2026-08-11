@@ -1,0 +1,78 @@
+[
+  {
+    "name": "evolve_modular_substrate",
+    "description": "Run modular HyperNEAT-LEO evolution on the Turing GPU (or CPU fallback). Returns fingerprint-locked modular J matrix, modular fitness, sparsity, and thermo stats. Use when modular differentiation of the energy landscape or agent topology is required.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "n_nodes": {"type": "integer", "description": "Number of nodes in the substrate (default 16)", "default": 16},
+        "pop": {"type": "integer", "description": "Population size for evolution (default 12)", "default": 12},
+        "gens": {"type": "integer", "description": "Number of generations (default 15)", "default": 15},
+        "hermitian_sym": {"type": "boolean", "description": "Force approximate Hermitian symmetry on the weight matrix for self-adjoint energy/attention operators", "default": true},
+        "seed": {"type": "integer", "description": "PRNG seed for reproducibility", "default": 42}
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "run_gibbs",
+    "description": "Run Metropolis or simple annealing on the current (or provided) EnergyLandscape. Returns final energy, config, accept rate, Landauer proxy, and wall time.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "beta": {"type": "number", "description": "Inverse temperature (default 1.0)", "default": 1.0},
+        "n_sweeps": {"type": "integer", "description": "Number of Metropolis sweeps (default 100)", "default": 100},
+        "mode": {"type": "string", "enum": ["metropolis", "anneal"], "description": "Sampling mode", "default": "metropolis"},
+        "n": {"type": "integer", "description": "Landscape size if creating a fresh toy landscape (default 24)", "default": 24},
+        "use_modular_J": {"type": "boolean", "description": "If true and a modular result is available, use its J matrix", "default": false}
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "get_spectral_gap",
+    "description": "Estimate spectral-gap proxy of the current EnergyLandscape for adaptive beta / adiabaticity decisions.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "beta": {"type": "number", "default": 1.0},
+        "n_samples": {"type": "integer", "default": 48}
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "dispatch_job",
+    "description": "Dispatch a sampling or evolution job onto the dual-node control plane.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "beta": {"type": "number", "default": 1.0},
+        "n_sweeps": {"type": "integer", "default": 120},
+        "mode": {"type": "string", "enum": ["metropolis", "anneal"], "default": "metropolis"},
+        "work_dir": {"type": "string", "default": "/data/diamondnode-dual"}
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "collect_results",
+    "description": "Collect completed job results from the dual-node results directory.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "work_dir": {"type": "string", "default": "/data/diamondnode-dual"}
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "get_landscape_fingerprint",
+    "description": "Return the current EnergyLandscape content fingerprint and basic stats.",
+    "parameters": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  }
+]
